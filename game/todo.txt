@@ -1,0 +1,4 @@
+1- Scoring System (Check it)
+2- Levels (Use the hit/miss ratio & score to go to the next level)
+3- Experiment with different speeds for each level, looks hard now,
+    maybe fixing points 1 & 2 may fix this, start with those first.

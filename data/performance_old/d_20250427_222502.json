@@ -1,0 +1,30 @@
+{
+    "level": 1,
+    "score": 570,
+    "hits": 25,
+    "misses": 3,
+    "elapsed_time_sec": 1745781775,
+    "status": "Level Determination Phase",
+    "performance_history": [
+        {
+            "level": 0,
+            "success_ratio": 1.0
+        },
+        {
+            "level": 0,
+            "success_ratio": 1.0
+        },
+        {
+            "level": 0,
+            "success_ratio": 1.0
+        },
+        {
+            "level": 0,
+            "success_ratio": 0.9130434782608695
+        },
+        {
+            "level": 0,
+            "success_ratio": 0.8928571428571429
+        }
+    ]
+}

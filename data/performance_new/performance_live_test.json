@@ -1,0 +1,18 @@
+{
+    "level": 1,
+    "score": 0,
+    "hits": 0,
+    "misses": 8,
+    "elapsed_time_sec": 1745781673,
+    "status": "Level Determination Phase",
+    "performance_history": [
+        {
+            "level": 0,
+            "success_ratio": 0.0
+        },
+        {
+            "level": 0,
+            "success_ratio": 0.0
+        }
+    ]
+}

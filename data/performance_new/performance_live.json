@@ -1,0 +1,150 @@
+{
+    "level": 5,
+    "score": 18830,
+    "hits": 340,
+    "misses": 138,
+    "elapsed_time_sec": 1745870309,
+    "status": "Experiment Phase",
+    "performance_history": [
+        {
+            "level": 0,
+            "success_ratio": 1.0
+        },
+        {
+            "level": 0,
+            "success_ratio": 1.0
+        },
+        {
+            "level": 0,
+            "success_ratio": 1.0
+        },
+        {
+            "level": 0,
+            "success_ratio": 1.0
+        },
+        {
+            "level": 0,
+            "success_ratio": 1.0
+        },
+        {
+            "level": 1,
+            "success_ratio": 1.0
+        },
+        {
+            "level": 1,
+            "success_ratio": 1.0
+        },
+        {
+            "level": 1,
+            "success_ratio": 1.0
+        },
+        {
+            "level": 1,
+            "success_ratio": 0.9772727272727273
+        },
+        {
+            "level": 1,
+            "success_ratio": 0.9795918367346939
+        },
+        {
+            "level": 1,
+            "success_ratio": 0.9811320754716981
+        },
+        {
+            "level": 2,
+            "success_ratio": 0.95
+        },
+        {
+            "level": 2,
+            "success_ratio": 0.9538461538461539
+        },
+        {
+            "level": 2,
+            "success_ratio": 0.9577464788732394
+        },
+        {
+            "level": 2,
+            "success_ratio": 0.9487179487179487
+        },
+        {
+            "level": 2,
+            "success_ratio": 0.9523809523809523
+        },
+        {
+            "level": 2,
+            "success_ratio": 0.9444444444444444
+        },
+        {
+            "level": 3,
+            "success_ratio": 0.9473684210526315
+        },
+        {
+            "level": 3,
+            "success_ratio": 0.9509803921568627
+        },
+        {
+            "level": 3,
+            "success_ratio": 0.9537037037037037
+        },
+        {
+            "level": 3,
+            "success_ratio": 0.956140350877193
+        },
+        {
+            "level": 3,
+            "success_ratio": 0.9586776859504132
+        },
+        {
+            "level": 3,
+            "success_ratio": 0.953125
+        },
+        {
+            "level": 4,
+            "success_ratio": 0.9541984732824428
+        },
+        {
+            "level": 4,
+            "success_ratio": 0.9090909090909091
+        },
+        {
+            "level": 4,
+            "success_ratio": 0.9072847682119205
+        },
+        {
+            "level": 4,
+            "success_ratio": 0.90625
+        },
+        {
+            "level": 4,
+            "success_ratio": 0.9058823529411765
+        },
+        {
+            "level": 4,
+            "success_ratio": 0.8983050847457628
+        },
+        {
+            "level": 5,
+            "success_ratio": 0.9021739130434783
+        },
+        {
+            "level": 5,
+            "success_ratio": 0.8963730569948186
+        },
+        {
+            "level": 5,
+            "success_ratio": 0.8792270531400966
+        },
+        {
+            "level": 5,
+            "success_ratio": 0.8657407407407407
+        },
+        {
+            "level": 5,
+            "success_ratio": 0.8464912280701754
+        },
+        {
+            "level": 5,
+            "success_ratio": 0.8516949152542372
+        }
+    ]
+}
