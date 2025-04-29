@@ -37,7 +37,7 @@ class MainApp(QStackedWidget):
         self.addWidget(self.game_dashboard_page)        # index 6
 
         # Start with the first page
-        self.setCurrentIndex(6)
+        self.setCurrentIndex(0)
 
     def next_page(self):
         """Move to next page."""
@@ -48,8 +48,8 @@ class MainApp(QStackedWidget):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
 
-    # with open("front/styles/main_styles.qss", "r") as f:
-    #     app.setStyleSheet(f.read())
+    with open("front/styles/main_styles.qss", "r") as f:
+    #   app.setStyleSheet(f.read())
 
     window = MainApp()
     window.setWindowTitle("Experimental App")
