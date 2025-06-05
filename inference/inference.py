@@ -30,10 +30,10 @@ def reshape_for_lstm(X, timesteps):
 
 # Feature columns expected by the model (excluding Timestamp)
 feature_columns = [
-    'HEAD_R_delta', 'HEAD_R_theta', 'HEAD_R_alpha', 'HEAD_R_beta', 'HEAD_R_gamma',
-    'HEAD_L_delta', 'HEAD_L_theta', 'HEAD_L_alpha', 'HEAD_L_beta', 'HEAD_L_gamma',
-    'BACK_L_delta', 'BACK_L_theta', 'BACK_L_alpha', 'BACK_L_beta', 'BACK_L_gamma',
-    'BACK_R_delta', 'BACK_R_theta', 'BACK_R_alpha', 'BACK_R_beta', 'BACK_R_gamma',
+    'Fp2_delta', 'Fp2_theta', 'Fp2_alpha', 'Fp2_beta', 'Fp2_gamma',
+    'Fp1_delta', 'Fp1_theta', 'Fp1_alpha', 'Fp1_beta', 'Fp1_gamma',
+    'O1_delta', 'O1_theta', 'O1_alpha', 'O1_beta', 'O1_gamma',
+    'O2_delta', 'O2_theta', 'O2_alpha', 'O2_beta', 'O2_gamma',
     'HR', 'SDNN', 'CV', 'RMSSD', 'pNN50'
 ]
 
