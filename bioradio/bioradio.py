@@ -8,6 +8,7 @@ from livefilter import LiveLFilter
 from scipy.signal import iirfilter, find_peaks
 from scipy.fft import rfft, rfftfreq
 from scipy.interpolate import interp1d
+import pandas as pd
 
 path = os.getcwd() + "\\BioRadioSDK.dll"
 clr.AddReference(path)
@@ -61,10 +62,8 @@ START_SHIFT = 10
 REFERENT_WINDOW = 30
 ANALYSYS_WINDOW = 30
 
-for i, signal in enumerate(signals):
-    sig_ax = [axes[i][0], axes[i][1], axes[i][2]]  if i < 4 else [axes[i-4][3]]
-    sig_ax[0].set_xlim(0, VISIBLE_WINDOW)
-    sig_ax[0].set_ylim(-0.01, 0.02)
+# Initialize list to store feature data
+feature_data = []
 
 def find_first_visible(x, window):
     t = len(x) - 1
@@ -87,6 +86,7 @@ def rhythm_ampl(x, y, start, end):
 
 
 def update(frame):
+    global feature_data
     # Retrieve data from the device
     for i, signal in enumerate(signals):
         data = [filters[i](d) for d in signal.GetScaledValueArray()]
@@ -128,7 +128,6 @@ def update(frame):
                 sig_ax[0].set_ylim(middle - diff, middle + diff) 
         except: pass
 
-
     axes[3][3].clear()
     axes[3][3].set_xticks([])
     axes[3][3].set_yticks([])
@@ -148,15 +147,48 @@ def update(frame):
         axes[3][3].text(0,8,f"ЧСС: {referent['HR']:.2f}")
 
     if len(xdata[6]) > ANALYSYS_WINDOW * PULSE_FREQ:
-        p, _ = find_peaks(ydata[i][-ANALYSYS_WINDOW*PULSE_FREQ:], distance=125)
-        sig_ax[0].scatter(np.array(xdata[i][-ANALYSYS_WINDOW*PULSE_FREQ:])[p], np.array(ydata[i][-ANALYSYS_WINDOW*PULSE_FREQ:])[p])
-        rr = np.diff(np.array(xdata[i][-ANALYSYS_WINDOW*PULSE_FREQ:])[p])*1000
+        p, _ = find_peaks(ydata[6][-ANALYSYS_WINDOW*PULSE_FREQ:], distance=125)
+        sig_ax[0].scatter(np.array(xdata[6][-ANALYSYS_WINDOW*PULSE_FREQ:])[p], np.array(ydata[6][-ANALYSYS_WINDOW*PULSE_FREQ:])[p])
+        rr = np.diff(np.array(xdata[6][-ANALYSYS_WINDOW*PULSE_FREQ:])[p]) * 1000
         N = len(rr)
         M = np.mean(rr)
-        SDNN = (sum([(i-M)**2 for i in rr])/(N-1))**0.5
-        CV = SDNN/M
-        RMSSD = (sum([(rr[i]-rr[i+1])**2 for i in range(N-1)])/(N-1))**0.5
-        pNN50 = sum([(1 if abs(rr[i]-rr[i+1])>50 else 0) for i in range(N-1)])/(N-1)
+        SDNN = (sum([(i - M) ** 2 for i in rr]) / (N - 1)) ** 0.5
+        CV = SDNN / M
+        RMSSD = (sum([(rr[i] - rr[i + 1]) ** 2 for i in range(N - 1)]) / (N - 1)) ** 0.5
+        pNN50 = sum([(1 if abs(rr[i] - rr[i + 1]) > 50 else 0) for i in range(N - 1)]) / (N - 1)
+
+        # Save features to the feature_data list
+        feature_entry = {
+            'Timestamp': time.time() - start,
+            'HEAD_R_delta': referent.get('HEAD_R', [0])[0] if referent.get('HEAD_R') else 0,
+            'HEAD_R_theta': referent.get('HEAD_R', [0])[1] if referent.get('HEAD_R') else 0,
+            'HEAD_R_alpha': referent.get('HEAD_R', [0])[2] if referent.get('HEAD_R') else 0,
+            'HEAD_R_beta': referent.get('HEAD_R', [0])[3] if referent.get('HEAD_R') else 0,
+            'HEAD_R_gamma': referent.get('HEAD_R', [0])[4] if referent.get('HEAD_R') else 0,
+            'HEAD_L_delta': referent.get('HEAD_L', [0])[0] if referent.get('HEAD_L') else 0,
+            'HEAD_L_theta': referent.get('HEAD_L', [0])[1] if referent.get('HEAD_L') else 0,
+            'HEAD_L_alpha': referent.get('HEAD_L', [0])[2] if referent.get('HEAD_L') else 0,
+            'HEAD_L_beta': referent.get('HEAD_L', [0])[3] if referent.get('HEAD_L') else 0,
+            'HEAD_L_gamma': referent.get('HEAD_L', [0])[4] if referent.get('HEAD_L') else 0,
+            'BACK_L_delta': referent.get('BACK_L', [0])[0] if referent.get('BACK_L') else 0,
+            'BACK_L_theta': referent.get('BACK_L', [0])[1] if referent.get('BACK_L') else 0,
+            'BACK_L_alpha': referent.get('BACK_L', [0])[2] if referent.get('BACK_L') else 0,
+            'BACK_L_beta': referent.get('BACK_L', [0])[3] if referent.get('BACK_L') else 0,
+            'BACK_L_gamma': referent.get('BACK_L', [0])[4] if referent.get('BACK_L') else 0,
+            'BACK_R_delta': referent.get('BACK_R', [0])[0] if referent.get('BACK_R') else 0,
+            'BACK_R_theta': referent.get('BACK_R', [0])[1] if referent.get('BACK_R') else 0,
+            'BACK_R_alpha': referent.get('BACK_R', [0])[2] if referent.get('BACK_R') else 0,
+            'BACK_R_beta': referent.get('BACK_R', [0])[3] if referent.get('BACK_R') else 0,
+            'BACK_R_gamma': referent.get('BACK_R', [0])[4] if referent.get('BACK_R') else 0,
+            'HR': referent.get('HR', 0),
+            'SDNN': referent.get('PULSE', {'SDNN': 0})['SDNN'] if referent.get('PULSE') else SDNN,
+            'CV': referent.get('PULSE', {'CV': 0})['CV'] if referent.get('PULSE') else CV,
+            'RMSSD': referent.get('PULSE', {'RMSSD': 0})['RMSSD'] if referent.get('PULSE') else RMSSD,
+            'pNN50': referent.get('PULSE', {'pNN50': 0})['pNN50'] if referent.get('PULSE') else pNN50,
+            'Temperament': 'Unknown'  # Placeholder, replace with actual temperament data if available
+        }
+        feature_data.append(feature_entry)
+
         axes[3][3].text(10,6,f'SDNN: {SDNN:.2f}')
         axes[3][3].text(10,4,f'CV: {CV:.2f}')
         axes[3][3].text(10,2,f'RMSSD: {RMSSD:.2f}')
@@ -169,6 +201,7 @@ def update(frame):
         axes[3][3].text(0,2,f"RMSSD: {referent['PULSE']['RMSSD']:.2f}")
         axes[3][3].text(0,0,f"pNN50: {referent['PULSE']['pNN50']:.2f}")
 
+# Save features to CSV when the program ends or periodically
 try:
     ani = FuncAnimation(fig, update, cache_frame_data=False, interval=200)
     plt.show()
@@ -176,3 +209,9 @@ except KeyboardInterrupt as e:
     del ani
     device.StopAcquisition()
     device.Disconnect()
+    # Save to CSV
+    if feature_data:
+        df = pd.DataFrame(feature_data)
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
+        df.to_csv(f'data/features/features_recording_{timestamp}.csv', index=False)
+        print(f"Features saved to data/features/features_recording_{timestamp}.csv")
