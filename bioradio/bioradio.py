@@ -38,32 +38,39 @@ signals = [signal for sg in device.SignalGroups for signal in sg]
 
 butter_b, butter_a = iirfilter(4, Wn=[5, 20], fs=500, btype="band", ftype="butter")
 eeg_names = ['HEAD_R', 'HEAD_L', 'BACK_L', 'BACK_R']
-filters = [LiveLFilter(b = butter_b, a = butter_a) if signal.Name in eeg_names else lambda x: x for signal in signals]
-rhythms=[
-    {'label':'δ','start':1,'end':4},
-    {'label':'θ','start':4,'end':8},
-    {'label':'α','start':8,'end':14},
-    {'label':'β','start':14,'end':30},
-    {'label':'γ','start':30,'end':40}
+filters = [LiveLFilter(b=butter_b, a=butter_a) if signal.Name in eeg_names else lambda x: x for signal in signals]
+rhythms = [
+    {'label': 'δ', 'start': 1, 'end': 4},
+    {'label': 'θ', 'start': 4, 'end': 8},
+    {'label': 'α', 'start': 8, 'end': 14},
+    {'label': 'β', 'start': 14, 'end': 30},
+    {'label': 'γ', 'start': 30, 'end': 40}
 ]
 rlabels = [r['label'] for r in rhythms]
 
 fig, axes = plt.subplots(4, 4, figsize=(12, 7))  # Adjust rows and columns as needed
-plt.subplots_adjust(wspace=0.2,hspace=0.8)
+plt.subplots_adjust(wspace=0.2, hspace=0.8)
 start = time.time()
 lines = []
 xdata = [[0] for _ in range(10)]
 ydata = [[0] for _ in range(10)]
-referent = {'HEAD_R':None,'HEAD_L':None,'BACK_L':None,'BACK_R':None,'PULSE':None,'HR':None}
+referent = {'HEAD_R': None, 'HEAD_L': None, 'BACK_L': None, 'BACK_R': None, 'PULSE': None, 'HR': None}
 EEG_FREQ = 500
 PULSE_FREQ = 250
-VISIBLE_WINDOW = 3 # должно быть меньше REFERENT_WINDOW
+VISIBLE_WINDOW = 3  # должно быть меньше REFERENT_WINDOW
 START_SHIFT = 10
 REFERENT_WINDOW = 30
 ANALYSYS_WINDOW = 30
 
-# Initialize list to store feature data
-feature_data = []
+# Initialize CSV file with headers on the first run
+csv_file = f'data/features/features_recording_{time.strftime("%Y%m%d_%H%M%S")}.csv'
+headers = ['Fp2_delta', 'Fp2_theta', 'Fp2_alpha', 'Fp2_beta', 'Fp2_gamma',
+           'Fp1_delta', 'Fp1_theta', 'Fp1_alpha', 'Fp1_beta', 'Fp1_gamma',
+           'O1_delta', 'O1_theta', 'O1_alpha', 'O1_beta', 'O1_gamma',
+           'O2_delta', 'O2_theta', 'O2_alpha', 'O2_beta', 'O2_gamma',
+           'HR', 'SDNN', 'CV', 'RMSSD', 'pNN50']
+with open(csv_file, 'w') as f:
+    pd.DataFrame(columns=headers).to_csv(f, index=False)
 
 def find_first_visible(x, window):
     t = len(x) - 1
@@ -86,7 +93,6 @@ def rhythm_ampl(x, y, start, end):
 
 
 def update(frame):
-    global feature_data
     # Retrieve data from the device
     for i, signal in enumerate(signals):
         data = [filters[i](d) for d in signal.GetScaledValueArray()]
@@ -94,7 +100,7 @@ def update(frame):
         xdata[i].extend(np.linspace(xdata[i][-1], time.time() - start, len(data) + 1)[1:])
         index = find_first_visible(xdata[i], VISIBLE_WINDOW)
 
-        sig_ax = [axes[i][0], axes[i][1], axes[i][2]]  if i < 4 else [axes[i-4][3]]
+        sig_ax = [axes[i][0], axes[i][1], axes[i][2]] if i < 4 else [axes[i-4][3]]
         for ax in sig_ax: ax.clear()
         sig_ax[0].set_title(signal.Name)
         if signal.Name in eeg_names:
@@ -108,14 +114,11 @@ def update(frame):
             sig_ax[0].set_xlim(xdata[i][-1] - VISIBLE_WINDOW, xdata[i][-1])
             if signal.Name in eeg_names:
                 x_f, y_f = fourie(xdata[i][index:], ydata[i][index:])
-                # sig_ax[1].plot(x_f, y_f, c=color, lw=0.5)
-                # sig_ax[1].set_xlim(5, 45)
-                # sig_ax[1].set_ylim(0, max(y_f))
                 bars = [rhythm_ampl(x_f, y_f, r['start'], r['end']) for r in rhythms]
                 sig_ax[2].bar(rlabels, bars, color=color)
-                if len(xdata[i]) > EEG_FREQ*REFERENT_WINDOW:
+                if len(xdata[i]) > EEG_FREQ * REFERENT_WINDOW:
                     if not referent[signal.Name]:
-                        x_f, y_f = fourie(xdata[i][EEG_FREQ*START_SHIFT:EEG_FREQ*REFERENT_WINDOW], ydata[i][EEG_FREQ*START_SHIFT:EEG_FREQ*REFERENT_WINDOW])
+                        x_f, y_f = fourie(xdata[i][EEG_FREQ * START_SHIFT:EEG_FREQ * REFERENT_WINDOW], ydata[i][EEG_FREQ * START_SHIFT:EEG_FREQ * REFERENT_WINDOW])
                         bars = [rhythm_ampl(x_f, y_f, r['start'], r['end']) for r in rhythms]
                         referent[signal.Name] = bars
                     sig_ax[1].bar(rlabels, referent[signal.Name], color='b')
@@ -135,21 +138,21 @@ def update(frame):
     axes[3][3].spines['right'].set_visible(False)
     axes[3][3].spines['bottom'].set_visible(False)
     axes[3][3].spines['left'].set_visible(False)
-    axes[3][3].set_xlim(0,12)
-    axes[3][3].set_ylim(0,12)
-    axes[3][3].text(0,10,f'Референс')
-    axes[3][3].text(10,10,f'Текущее')
+    axes[3][3].set_xlim(0, 12)
+    axes[3][3].set_ylim(0, 12)
+    axes[3][3].text(0, 10, f'Референс')
+    axes[3][3].text(10, 10, f'Текущее')
     if len(xdata[4]) > PULSE_FREQ * ANALYSYS_WINDOW:
-        axes[3][3].text(10,8,f'ЧСС: {np.mean(ydata[4][-PULSE_FREQ*ANALYSYS_WINDOW:]):.2f}')
+        axes[3][3].text(10, 8, f'ЧСС: {np.mean(ydata[4][-PULSE_FREQ * ANALYSYS_WINDOW:]):.2f}')
     if len(xdata[4]) > PULSE_FREQ * REFERENT_WINDOW:
         if not referent['HR']:
-            referent['HR'] = np.mean(ydata[4][PULSE_FREQ*START_SHIFT:PULSE_FREQ*REFERENT_WINDOW])
-        axes[3][3].text(0,8,f"ЧСС: {referent['HR']:.2f}")
+            referent['HR'] = np.mean(ydata[4][PULSE_FREQ * START_SHIFT:PULSE_FREQ * REFERENT_WINDOW])
+        axes[3][3].text(0, 8, f"ЧСС: {referent['HR']:.2f}")
 
     if len(xdata[6]) > ANALYSYS_WINDOW * PULSE_FREQ:
-        p, _ = find_peaks(ydata[6][-ANALYSYS_WINDOW*PULSE_FREQ:], distance=125)
-        sig_ax[0].scatter(np.array(xdata[6][-ANALYSYS_WINDOW*PULSE_FREQ:])[p], np.array(ydata[6][-ANALYSYS_WINDOW*PULSE_FREQ:])[p])
-        rr = np.diff(np.array(xdata[6][-ANALYSYS_WINDOW*PULSE_FREQ:])[p]) * 1000
+        p, _ = find_peaks(ydata[6][-ANALYSYS_WINDOW * PULSE_FREQ:], distance=125)
+        sig_ax[0].scatter(np.array(xdata[6][-ANALYSYS_WINDOW * PULSE_FREQ:])[p], np.array(ydata[6][-ANALYSYS_WINDOW * PULSE_FREQ:])[p])
+        rr = np.diff(np.array(xdata[6][-ANALYSYS_WINDOW * PULSE_FREQ:])[p]) * 1000
         N = len(rr)
         M = np.mean(rr)
         SDNN = (sum([(i - M) ** 2 for i in rr]) / (N - 1)) ** 0.5
@@ -157,51 +160,50 @@ def update(frame):
         RMSSD = (sum([(rr[i] - rr[i + 1]) ** 2 for i in range(N - 1)]) / (N - 1)) ** 0.5
         pNN50 = sum([(1 if abs(rr[i] - rr[i + 1]) > 50 else 0) for i in range(N - 1)]) / (N - 1)
 
-        # Save features to the feature_data list
+        # Create feature entry and save to CSV immediately
         feature_entry = {
-            'Timestamp': time.time() - start,
-            'HEAD_R_delta': referent.get('HEAD_R', [0])[0] if referent.get('HEAD_R') else 0,
-            'HEAD_R_theta': referent.get('HEAD_R', [0])[1] if referent.get('HEAD_R') else 0,
-            'HEAD_R_alpha': referent.get('HEAD_R', [0])[2] if referent.get('HEAD_R') else 0,
-            'HEAD_R_beta': referent.get('HEAD_R', [0])[3] if referent.get('HEAD_R') else 0,
-            'HEAD_R_gamma': referent.get('HEAD_R', [0])[4] if referent.get('HEAD_R') else 0,
-            'HEAD_L_delta': referent.get('HEAD_L', [0])[0] if referent.get('HEAD_L') else 0,
-            'HEAD_L_theta': referent.get('HEAD_L', [0])[1] if referent.get('HEAD_L') else 0,
-            'HEAD_L_alpha': referent.get('HEAD_L', [0])[2] if referent.get('HEAD_L') else 0,
-            'HEAD_L_beta': referent.get('HEAD_L', [0])[3] if referent.get('HEAD_L') else 0,
-            'HEAD_L_gamma': referent.get('HEAD_L', [0])[4] if referent.get('HEAD_L') else 0,
-            'BACK_L_delta': referent.get('BACK_L', [0])[0] if referent.get('BACK_L') else 0,
-            'BACK_L_theta': referent.get('BACK_L', [0])[1] if referent.get('BACK_L') else 0,
-            'BACK_L_alpha': referent.get('BACK_L', [0])[2] if referent.get('BACK_L') else 0,
-            'BACK_L_beta': referent.get('BACK_L', [0])[3] if referent.get('BACK_L') else 0,
-            'BACK_L_gamma': referent.get('BACK_L', [0])[4] if referent.get('BACK_L') else 0,
-            'BACK_R_delta': referent.get('BACK_R', [0])[0] if referent.get('BACK_R') else 0,
-            'BACK_R_theta': referent.get('BACK_R', [0])[1] if referent.get('BACK_R') else 0,
-            'BACK_R_alpha': referent.get('BACK_R', [0])[2] if referent.get('BACK_R') else 0,
-            'BACK_R_beta': referent.get('BACK_R', [0])[3] if referent.get('BACK_R') else 0,
-            'BACK_R_gamma': referent.get('BACK_R', [0])[4] if referent.get('BACK_R') else 0,
+            'Fp2_delta': referent.get('Fp2', [0])[0] if referent.get('Fp2') else 0,
+            'Fp2_theta': referent.get('HEAD_R', [0])[1] if referent.get('HEAD_R') else 0,
+            'Fp2_alpha': referent.get('HEAD_R', [0])[2] if referent.get('HEAD_R') else 0,
+            'Fp2_beta': referent.get('HEAD_R', [0])[3] if referent.get('HEAD_R') else 0,
+            'Fp2_gamma': referent.get('HEAD_R', [0])[4] if referent.get('HEAD_R') else 0,
+            'Fp1_delta': referent.get('HEAD_L', [0])[0] if referent.get('HEAD_L') else 0,
+            'Fp1_theta': referent.get('HEAD_L', [0])[1] if referent.get('HEAD_L') else 0,
+            'Fp1_alpha': referent.get('HEAD_L', [0])[2] if referent.get('HEAD_L') else 0,
+            'Fp1_beta': referent.get('HEAD_L', [0])[3] if referent.get('HEAD_L') else 0,
+            'Fp1_gamma': referent.get('HEAD_L', [0])[4] if referent.get('HEAD_L') else 0,
+            'O1_delta': referent.get('BACK_L', [0])[0] if referent.get('BACK_L') else 0,
+            'O1_theta': referent.get('BACK_L', [0])[1] if referent.get('BACK_L') else 0,
+            'O1_alpha': referent.get('BACK_L', [0])[2] if referent.get('BACK_L') else 0,
+            'O1_beta': referent.get('BACK_L', [0])[3] if referent.get('BACK_L') else 0,
+            'O1_gamma': referent.get('BACK_L', [0])[4] if referent.get('BACK_L') else 0,
+            'O2_delta': referent.get('BACK_R', [0])[0] if referent.get('BACK_R') else 0,
+            'O2_theta': referent.get('BACK_R', [0])[1] if referent.get('BACK_R') else 0,
+            'O2_alpha': referent.get('BACK_R', [0])[2] if referent.get('BACK_R') else 0,
+            'O2_beta': referent.get('BACK_R', [0])[3] if referent.get('BACK_R') else 0,
+            'O2_gamma': referent.get('BACK_R', [0])[4] if referent.get('BACK_R') else 0,
             'HR': referent.get('HR', 0),
             'SDNN': referent.get('PULSE', {'SDNN': 0})['SDNN'] if referent.get('PULSE') else SDNN,
             'CV': referent.get('PULSE', {'CV': 0})['CV'] if referent.get('PULSE') else CV,
             'RMSSD': referent.get('PULSE', {'RMSSD': 0})['RMSSD'] if referent.get('PULSE') else RMSSD,
-            'pNN50': referent.get('PULSE', {'pNN50': 0})['pNN50'] if referent.get('PULSE') else pNN50,
-            'Temperament': 'Unknown'  # Placeholder, replace with actual temperament data if available
+            'pNN50': referent.get('PULSE', {'pNN50': 0})['pNN50'] if referent.get('PULSE') else pNN50
         }
-        feature_data.append(feature_entry)
+        df = pd.DataFrame([feature_entry])
+        df.to_csv(csv_file, mode='a', header=False, index=False)
+        print(f"Feature saved to {csv_file} at {time.time() - start:.2f} seconds")
 
-        axes[3][3].text(10,6,f'SDNN: {SDNN:.2f}')
-        axes[3][3].text(10,4,f'CV: {CV:.2f}')
-        axes[3][3].text(10,2,f'RMSSD: {RMSSD:.2f}')
-        axes[3][3].text(10,0,f'pNN50: {pNN50:.2f}')
-    if len(xdata[6]) > PULSE_FREQ*REFERENT_WINDOW:
+        axes[3][3].text(10, 6, f'SDNN: {SDNN:.2f}')
+        axes[3][3].text(10, 4, f'CV: {CV:.2f}')
+        axes[3][3].text(10, 2, f'RMSSD: {RMSSD:.2f}')
+        axes[3][3].text(10, 0, f'pNN50: {pNN50:.2f}')
+    if len(xdata[6]) > PULSE_FREQ * REFERENT_WINDOW:
         if not referent['PULSE']:
-            referent['PULSE'] = {'SDNN':SDNN, 'CV':CV, 'RMSSD':RMSSD, 'pNN50':pNN50}
-        axes[3][3].text(0,6,f"SDNN: {referent['PULSE']['SDNN']:.2f}")
-        axes[3][3].text(0,4,f"CV: {referent['PULSE']['CV']:.2f}")
-        axes[3][3].text(0,2,f"RMSSD: {referent['PULSE']['RMSSD']:.2f}")
-        axes[3][3].text(0,0,f"pNN50: {referent['PULSE']['pNN50']:.2f}")
+            referent['PULSE'] = {'SDNN': SDNN, 'CV': CV, 'RMSSD': RMSSD, 'pNN50': pNN50}
+        axes[3][3].text(0, 6, f"SDNN: {referent['PULSE']['SDNN']:.2f}")
+        axes[3][3].text(0, 4, f"CV: {referent['PULSE']['CV']:.2f}")
+        axes[3][3].text(0, 2, f"RMSSD: {referent['PULSE']['RMSSD']:.2f}")
+        axes[3][3].text(0, 0, f"pNN50: {referent['PULSE']['pNN50']:.2f}")
 
-# Save features to CSV when the program ends or periodically
 try:
     ani = FuncAnimation(fig, update, cache_frame_data=False, interval=200)
     plt.show()
@@ -209,9 +211,4 @@ except KeyboardInterrupt as e:
     del ani
     device.StopAcquisition()
     device.Disconnect()
-    # Save to CSV
-    if feature_data:
-        df = pd.DataFrame(feature_data)
-        timestamp = time.strftime("%Y%m%d_%H%M%S")
-        df.to_csv(f'data/features/features_recording_{timestamp}.csv', index=False)
-        print(f"Features saved to data/features/features_recording_{timestamp}.csv")
+    print(f"Recording stopped. Features saved to {csv_file}")
